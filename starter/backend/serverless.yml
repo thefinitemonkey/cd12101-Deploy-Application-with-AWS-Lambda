@@ -10,6 +10,19 @@ frameworkVersion: '3'
 provider:
   name: aws
   runtime: nodejs22.x
+  tracing:
+    lambda: true
+    apiGateway: true
+
+  stage: ${opt:stage, 'dev'}
+r egion: ${opt:region, 'us-east-1'}
+
+enviornment:
+  S3_BUCKET: todo-images-${self:provider.stage}
+  TODOS_TABLE: TODOS_${self:provider.stage}
+  TODOS_CREATED_AT_INDEX: TodosCreatedAtIndex 
+  TODOS_COMPLETED_INDEX: TodosCompletedIndex
+  
 
 functions:
 
@@ -22,7 +35,21 @@ functions:
     events:
       - http:
           method: get
+          authorizer: Auth
+          cors: true
           path: todos
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource:
+          - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource: 
+          - "*"
 
   # TODO: Configure this function
   CreateTodo:
@@ -58,4 +85,47 @@ functions:
 
 resources:
   Resources:
+    TodosDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.TODOS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: todoId
+            AttributeType: S
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: description
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: N
+          - AttributeName: dueAt
+            AttributeType: N
+          - AttributeName: attachmentUrl
+            AttributeType: S
+          - AttributeName: completed
+            AttributeType: N
+        KeySchema:
+          - AttributeName: todoId
+            KeyType: HASH
+          - AttributeName: userId
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+        LocalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.TODOS_CREATED_AT_INDEX}
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: ${self:provider.environment.TODOS_COMPLETED_INDEX}
+            KeySchema:
+              - AttributeName: userId
+                KeyType: HASH
+              - AttributeName: completed
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+              
     # TODO: Add any necessary AWS resources
