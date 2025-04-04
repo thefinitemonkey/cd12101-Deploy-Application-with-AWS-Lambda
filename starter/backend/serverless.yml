@@ -1,3 +1,5 @@
+org: finitemonkey
+app: serverless-todo-app
 service: serverless-todo-app
 
 plugins:
@@ -7,7 +9,7 @@ frameworkVersion: '3'
 
 provider:
   name: aws
-  runtime: nodejs14.x
+  runtime: nodejs22.x
 
 functions:
 

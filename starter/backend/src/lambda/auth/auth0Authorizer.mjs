@@ -4,7 +4,7 @@ import { createLogger } from '../../utils/logger.mjs'
 
 const logger = createLogger('auth')
 
-const jwksUrl = 'https://test-endpoint.auth0.com/.well-known/jwks.json'
+const jwksUrl = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/.well-known/jwks.json`
 
 export async function handler(event) {
   try {
