@@ -21,7 +21,7 @@ enviornment:
   S3_BUCKET: todo-images-${self:provider.stage}
   TODOS_TABLE: TODOS_${self:provider.stage}
   TODOS_CREATED_AT_INDEX: TodosCreatedAtIndex 
-  TODOS_COMPLETED_INDEX: TodosCompletedIndex
+  TODOS_DONE_INDEX: TodosDoneIndex
   
 
 functions:
@@ -94,15 +94,15 @@ resources:
             AttributeType: S
           - AttributeName: userId
             AttributeType: S
-          - AttributeName: description
+          - AttributeName: name
             AttributeType: S
           - AttributeName: createdAt
             AttributeType: N
-          - AttributeName: dueAt
+          - AttributeName: dueDate
             AttributeType: N
           - AttributeName: attachmentUrl
             AttributeType: S
-          - AttributeName: completed
+          - AttributeName: done
             AttributeType: N
         KeySchema:
           - AttributeName: todoId
@@ -119,7 +119,7 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
-          - IndexName: ${self:provider.environment.TODOS_COMPLETED_INDEX}
+          - IndexName: ${self:provider.environment.TODOS_DONE_INDEX}
             KeySchema:
               - AttributeName: userId
                 KeyType: HASH
