@@ -22,6 +22,8 @@ provider:
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: TodosCreatedAtIndex 
     TODOS_DONE_INDEX: TodosDoneIndex
+    TODOS_APP_AUTH0_DOMAIN: dev-do2s6axuwuap2dzd.us.auth0.com
+    TODOS_APP_AUTH0_AUDIENCE: https://dev-do2s6axuwuap2dzd.us.auth0.com/api/v2/
   
 
 functions:
