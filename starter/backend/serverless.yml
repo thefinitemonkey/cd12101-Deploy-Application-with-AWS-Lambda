@@ -9,19 +9,19 @@ frameworkVersion: '3'
 
 provider:
   name: aws
-  runtime: nodejs22.x
+  runtime: nodejs18.x
   tracing:
     lambda: true
     apiGateway: true
 
   stage: ${opt:stage, 'dev'}
-r egion: ${opt:region, 'us-east-1'}
+  region: ${opt:region, 'us-east-1'}
 
-enviornment:
-  S3_BUCKET: todo-images-${self:provider.stage}
-  TODOS_TABLE: TODOS_${self:provider.stage}
-  TODOS_CREATED_AT_INDEX: TodosCreatedAtIndex 
-  TODOS_DONE_INDEX: TodosDoneIndex
+  environment:
+    S3_BUCKET: todo-images-${self:provider.stage}
+    TODOS_TABLE: Todos-${self:provider.stage}
+    TODOS_CREATED_AT_INDEX: TodosCreatedAtIndex 
+    TODOS_DONE_INDEX: TodosDoneIndex
   
 
 functions:
@@ -85,6 +85,17 @@ functions:
 
 resources:
   Resources:
+    GatewayResponseDefault4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST,PATCH,PUT'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: ApiGatewayRestApi
+
     TodosDynamoDBTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -94,14 +105,8 @@ resources:
             AttributeType: S
           - AttributeName: userId
             AttributeType: S
-          - AttributeName: name
-            AttributeType: S
           - AttributeName: createdAt
             AttributeType: N
-          - AttributeName: dueDate
-            AttributeType: N
-          - AttributeName: attachmentUrl
-            AttributeType: S
           - AttributeName: done
             AttributeType: N
         KeySchema:
@@ -113,7 +118,7 @@ resources:
         LocalSecondaryIndexes:
           - IndexName: ${self:provider.environment.TODOS_CREATED_AT_INDEX}
             KeySchema:
-              - AttributeName: userId
+              - AttributeName: todoId
                 KeyType: HASH
               - AttributeName: createdAt
                 KeyType: RANGE
@@ -121,9 +126,9 @@ resources:
               ProjectionType: ALL
           - IndexName: ${self:provider.environment.TODOS_DONE_INDEX}
             KeySchema:
-              - AttributeName: userId
+              - AttributeName: todoId
                 KeyType: HASH
-              - AttributeName: completed
+              - AttributeName: done
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL

@@ -6,13 +6,13 @@ import { getUserId } from '../utils.mjs'
 
 export const handler = middy()
   .use(httpErrorHandler())
-  .use(cors({ credentials: true }))
+  .use(cors({ credentials: true, origin: '*' }))
   .handler(async (event) => {
     console.log('Processing event: ', event)
     // Get the userId from the request
-    const userId = getUserId(event);
+    const userId = getUserId(event)
     // Call the business logic function to get the todos
-    const todos = await getTodos(userId);
+    const todos = await getTodos(userId)
 
     return {
       statusCode: 200,
