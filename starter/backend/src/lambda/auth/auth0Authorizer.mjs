@@ -55,14 +55,12 @@ async function verifyToken(authHeader) {
   if (!key) {
     throw new Error('Unable to find signing key');
   }
-  // Log debug information
-  logger.info('Signing key', { key });
 
   // Log debug information
   logger.info('Audience and issuer', { audience: process.env.TODOS_APP_AUTH0_AUDIENCE, domain: process.env.TODOS_APP_AUTH0_DOMAIN});
 
   // Verify the token using the signing key
-  result = await jsonwebtoken.verify(token, key, {
+  const result = await jsonwebtoken.verify(token, key, {
     algorithms: ['RS256'],
     audience: process.env.TODOS_APP_AUTH0_AUDIENCE,
     issuer: `https://${process.env.TODOS_APP_AUTH0_DOMAIN}/`
