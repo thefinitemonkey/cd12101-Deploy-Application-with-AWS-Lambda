@@ -18,13 +18,14 @@ provider:
   region: ${opt:region, 'us-east-1'}
 
   environment:
-    S3_BUCKET: todo-images-${self:provider.stage}
+    IMAGES_S3_BUCKET: fntmnky-todo-images-${self:provider.stage}
     TODOS_TABLE: Todos-new-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: TodosCreatedAtIndex 
     TODOS_DONE_INDEX: TodosDoneIndex
     TODOS_USER_ID_INDEX: TodosUserIdIndex
     TODOS_APP_AUTH0_DOMAIN: dev-do2s6axuwuap2dzd.us.auth0.com
     TODOS_APP_AUTH0_AUDIENCE: https://dev-do2s6axuwuap2dzd.us.auth0.com/api/v2/
+    SIGNED_URL_EXPIRATION: 300
   
 
 
@@ -110,7 +111,32 @@ functions:
     events:
       - http:
           method: patch
+          authorizer: Auth
+          cors: 
+            origin: 'http://localhost:3000'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+            allowCredentials: true
           path: todos/{todoId}
+          request:
+            schema:
+              application/json: ${file(models/update-todo-request.json)}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+        Resource:
+          - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource: 
+          - "*"
 
   # TODO: Configure this function
   DeleteTodo:
@@ -126,7 +152,37 @@ functions:
     events:
       - http:
           method: post
+          authorizer: Auth
+          cors: 
+            origin: 'http://localhost:3000'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+            allowCredentials: true
           path: todos/{todoId}/attachment
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - s3:PutObject
+          - s3:PutObjectAcl
+        Resource:
+          - arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+        Resource:
+          - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+          - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_USER_ID_INDEX}
+      - Effect: Allow
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource: 
+          - "*"
+
 
 resources:
   Resources:
@@ -175,5 +231,43 @@ resources:
                 KeyType: HASH
             Projection:
               ProjectionType: ALL
+
+    TodosS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.IMAGES_S3_BUCKET}
+        PublicAccessBlockConfiguration:
+          BlockPublicPolicy: false
+          RestrictPublicBuckets: false
+        CorsConfiguration:
+          CorsRules:
+            - AllowedOrigins:
+                - http://localhost:3000
+              AllowedHeaders:
+                - "*"
+              AllowedMethods:
+                - GET
+                - HEAD
+                - PUT
+                - POST
+                - DELETE
+              MaxAge: 3000
+
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref TodosS3Bucket
+        PolicyDocument:
+          Id: PublicPermissionsBucketPolicy
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                AWS: "*"
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+              Resource:
+                - !Sub arn:aws:s3:::${self:provider.environment.IMAGES_S3_BUCKET}/*
               
     # TODO: Add any necessary AWS resources

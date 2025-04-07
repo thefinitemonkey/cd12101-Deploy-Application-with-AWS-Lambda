@@ -1,7 +1,34 @@
-export function handler(event) {
-  const todoId = event.pathParameters.todoId
-  const updatedTodo = JSON.parse(event.body)
-  
-  // TODO: Update a TODO item with the provided id using values in the "updatedTodo" object
-  return undefined
-}
+import middy from '@middy/core'
+import cors from '@middy/http-cors'
+import httpErrorHandler from '@middy/http-error-handler'
+import { createLogger } from '../../utils/logger.mjs'
+import { getUserId } from '../utils.mjs'
+import { updateTodo } from '../../businessLogic/todos.mjs'
+
+export const handler = middy()
+  .use(httpErrorHandler())
+  .use(cors({ credentials: true, origin: 'http://localhost:3000' }))
+  .handler(async (event) => {
+    // Get the userId from the request
+    const userId = getUserId(event)
+    // Populate todo object from the request body and default values
+    const updatedTodo = JSON.parse(event.body)
+
+    // Create a logger instance
+    const logger = createLogger('createTodo')
+
+    logger.info('Processing update todo event', { userId, updatedTodo })
+    // Call the business logic function to create a new todo
+    const todoItem = await updateTodo(userId, updatedTodo)
+
+    return {
+      statusCode: 201,
+      headers: {
+        'Access-Control-Allow-Origin': 'http://localhost:3000',
+        'Access-Control-Allow-Credentials': true
+      },
+      body: JSON.stringify({
+        item: todoItem
+      })
+    }
+  })

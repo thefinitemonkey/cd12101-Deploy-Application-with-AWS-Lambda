@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "todo",
+  "type": "object",
+  "properties": {
+    "todoId": {
+      "type": "string",
+      "description": "The ID of the todo"
+    },
+    "userId": {
+      "type": "string",
+      "description": "The ID of the user who created the todo"
+    },
+    "name": {
+      "type": "string",
+      "description": "The name of the todo"
+    },
+    "dueDate": {
+      "type": "number",
+      "description": "The due date of the todo in milliseconds since epoch"
+    },
+    "done": {
+      "type": "boolean",
+      "description": "Whether the todo is completed or not"
+    },
+    "createdAt": {
+      "type": "number",
+      "description": "The creation date of the todo in milliseconds since epoch"
+    },
+    "attachmentUrl": {
+      "type": "string",
+      "description": "The URL of the attachment for the todo"
+    }
+  },
+  "required": ["todoId", "userId"],
+  "additionalProperties": false
+}

@@ -60,11 +60,77 @@ export class TodosAccess {
     })
 
     try {
-      await this.dynamoDBClient.put(params);
-      return todoObject;
+      const result = await this.dynamoDBClient.put(params);
+      return result;
     } catch (error) {
       this.logger.error('Error creating todo', error);
       throw new Error('Could not create todo');
+    }
+  }
+
+  async updateTodo(todoObject) {
+    const params = {
+      TableName: process.env.TODOS_TABLE,
+      Item: todoObject
+    }
+    this.logger.info('Updating todo in DynamoDB', {
+      params
+    })
+
+    try {
+      const result = await this.dynamoDBClient.update(params);
+      return result;
+    } catch (error) {
+      this.logger.error('Error updating todo', error);
+      throw new Error('Could not update todo');
+    }
+  }
+
+  async updateTodoAttachment( {todoId, userId, attachmentUrl} ) {
+    // Set parameters for the update operation
+    const params = {
+      TableName: process.env.TODOS_TABLE,
+      Key: {
+        userId,
+        todoId
+      },
+      UpdateExpression: 'set attachmentUrl = :attachmentUrl',
+      ExpressionAttributeValues: {
+        ':attachmentUrl': attachmentUrl
+      }
+    }
+    // Log the parameters for debugging
+    this.logger.info('Updating todo attachment in DynamoDB', {
+      params
+    })
+
+    try {
+      const result = await this.dynamoDBClient.update(params);
+      return result;
+    } catch (error) {
+      this.logger.error('Error updating todo attachment', error);
+      throw new Error('Could not update todo attachment');
+    }
+  }
+
+  async deleteTodo(userId, todoId) {
+    const params = {
+      TableName: process.env.TODOS_TABLE,
+      Key: {
+        userId,
+        todoId
+      }
+    }
+    this.logger.info('Deleting todo in DynamoDB', {
+      params
+    })
+
+    try {
+      const result = await this.dynamoDBClient.delete(params);
+      return result;
+    } catch (error) {
+      this.logger.error('Error deleting todo', error);
+      throw new Error('Could not delete todo');
     }
   }
 }
