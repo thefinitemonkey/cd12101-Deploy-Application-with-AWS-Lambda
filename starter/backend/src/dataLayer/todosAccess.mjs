@@ -10,20 +10,26 @@ import { createLogger } from '../utils/logger.mjs'
 
 export class TodosAccess {
   constructor(
-    documentClient = AWSXRay.captureAWSv3Client(new DynamoDBClient()),
+    documentClient = AWSXRay.captureAWSv3Client(new DynamoDB()),
+    gsiDocumentClient = AWSXRay.captureAWSv3Client(new DynamoDBClient()),
     todosTable = process.env.TODOS_TABLE
   ) {
-    this.documentClient = documentClient
     this.todosTable = todosTable
-    this.docClient = DynamoDBDocumentClient.from(this.documentClient)
-    this.logger = createLogger('auth')
+    // Primary table schema reference for PUT/PATCH/DELETE
+    this.documentClient = documentClient
+    this.dynamoDBClient = DynamoDBDocument.from(this.documentClient)
+    // GSI table schema reference for query by userId
+    this.gsiDocumentClient = gsiDocumentClient
+    this.docClient = DynamoDBDocumentClient.from(this.gsiDocumentClient)
+
+    this.logger = createLogger('todosAccess')
   }
 
   async getTodos(userId) {
     this.logger.info('Getting todos', {
       userId,
       table: process.env.TODOS_TABLE,
-      index: process.env.TODOS_USER_ID_INDEX,
+      index: process.env.TODOS_USER_ID_INDEX
     })
 
     // Check if the userId is provided
@@ -43,17 +49,22 @@ export class TodosAccess {
     const result = await this.docClient.send(new QueryCommand(params))
     return result.Items
   }
-  // Query the database to get all todos for the given userId
-  // Use the KeyConditionExpression to filter by userId
-  // Use the ExpressionAttributeValues to provide the value for userId
-  //const result = await this.dynamoDbClient.query({
-  //  TableName: this.todosTable,
-  //  KeyConditionExpression: 'userId = :userId',
-  //  ExpressionAttributeValues: {
-  //    ':userId': userId
-  //  }
-  //});
 
-  //return result.Items;
-  // }
+  async createTodo(todoObject) {
+    const params = {
+      TableName: process.env.TODOS_TABLE,
+      Item: todoObject
+    }
+    this.logger.info('Storing todo in DynamoDB', {
+      params
+    })
+
+    try {
+      await this.dynamoDBClient.put(params);
+      return todoObject;
+    } catch (error) {
+      this.logger.error('Error creating todo', error);
+      throw new Error('Could not create todo');
+    }
+  }
 }
