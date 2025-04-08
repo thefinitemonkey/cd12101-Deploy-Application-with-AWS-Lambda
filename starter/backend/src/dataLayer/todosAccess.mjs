@@ -68,10 +68,22 @@ export class TodosAccess {
     }
   }
 
-  async updateTodo(todoObject) {
+  async updateTodo({todoId, userId, todoItem}) {
+    // Get the new value for the done attribute as a number
+    // If done is not provided, default to false
+    const done = +(todoItem.done !== undefined ? todoItem.done : false);
+    this.logger.info('Updating todo done value', { done });
+
     const params = {
       TableName: process.env.TODOS_TABLE,
-      Item: todoObject
+      Key: {
+        userId,
+        todoId
+      },
+      UpdateExpression: 'set done = :done',
+      ExpressionAttributeValues: {
+        ':done': done
+      }
     }
     this.logger.info('Updating todo in DynamoDB', {
       params
@@ -113,7 +125,7 @@ export class TodosAccess {
     }
   }
 
-  async deleteTodo(userId, todoId) {
+  async deleteTodo({todoId, userId}) {
     const params = {
       TableName: process.env.TODOS_TABLE,
       Key: {

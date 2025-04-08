@@ -6,18 +6,17 @@ import { getUserId } from '../utils.mjs'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import * as uuid from 'uuid'
-import { TodosAccess } from '../../dataLayer/todosAccess.mjs'
+import { generateUploadUrl } from '../../businessLogic/todos.mjs'
 
 const s3Client = new S3Client()
 const urlExpiration = parseInt(process.env.SIGNED_URL_EXPIRATION)
-const todosAccess = new TodosAccess();
 
 export const handler = middy()
   .use(httpErrorHandler())
   .use(cors({ credentials: true, origin: 'http://localhost:3000' }))
   .handler(async (event) => {
+    const todoId = event.pathParameters.todoId;
     const eventInfo = JSON.parse(event.body)
-    const todoId = eventInfo.todoId;
     const userId = getUserId(event)
     // Create a logger instance
     const logger = createLogger('generateUploadUrl')
@@ -28,7 +27,7 @@ export const handler = middy()
 
     // Update the todo item with the image URL
     const imageUrl = `https://${process.env.IMAGES_S3_BUCKET}.s3.amazonaws.com/${imageId}`;
-    const updateResult = await todosAccess.updateTodoAttachment({
+    const updateResult = await generateUploadUrl({
       todoId,
       userId,
       attachmentUrl: imageUrl

@@ -10,9 +10,9 @@ export async function getTodos(userId) {
 
 export async function createTodo(userId, newTodo) {
   // Use the uuid package to generate a unique ID
-  const todoId = uuid.v4()
+  const todoId = uuid.v4();
   // Set the createdAt timestamp to the current time
-  const createdAt = new Date().toISOString()
+  const createdAt = new Date().toISOString();
 
   const todoItem = {
     userId,
@@ -20,34 +20,41 @@ export async function createTodo(userId, newTodo) {
     createdAt,
     done: false,
     ...newTodo
-  }
+  };
 
   // Make request to have new todo created in the database
-  const result = await todosAccess.createTodo(todoItem)
-  return result
+  const result = await todosAccess.createTodo(todoItem);
+  return result;
 }
 
-export async function updateTodo(userId, updatedTodo) {
+export async function updateTodo({todoId, userId, updatedTodo}) {
   // Set the updatedAt timestamp to the current time
-  const updatedAt = new Date().toISOString()
+  const updatedAt = new Date().toISOString();
 
   const todoItem = {
+    todoId,
     userId,
     ...updatedTodo,
     updatedAt
-  }
+  };
 
   // Make request to have new todo created in the database
-  const result = await todosAccess.updateTodo(todoItem)
-  return result
+  const result = await todosAccess.updateTodo({todoId, userId, todoItem});
+  return result;
 }
 
-export async function deleteTodo(userId, todoId) {
+export async function deleteTodo({todoId, userId}) {
   // Make request to have new todo created in the database
-  const result = await todosAccess.deleteTodo(userId, todoId)
-  return result
+  const result = await todosAccess.deleteTodo({todoId, userId});
+  return result;
 }
 
-export async function generateUploadUrl(todoId) {
-    
+export async function generateUploadUrl({ todoId, userId, attachmentUrl }) {
+  // Make request to have new todo created in the database
+  const result = await todosAccess.updateTodoAttachment({
+    todoId,
+    userId,
+    attachmentUrl
+  });
+  return result;
 }

@@ -131,6 +131,7 @@ functions:
           - dynamodb:UpdateItem
         Resource:
           - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+          - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_USER_ID_INDEX}
       - Effect: Allow
         Action:
           - "xray:PutTraceSegments"
@@ -144,7 +145,32 @@ functions:
     events:
       - http:
           method: delete
+          authorizer: Auth
+          cors: 
+            origin: 'http://localhost:3000'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+            allowCredentials: true
           path: todos/{todoId}
+          request:
+            schema:
+              application/json: ${file(models/delete-todo-request.json)}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+        Resource:
+          - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - "xray:PutTraceSegments"
+          - "xray:PutTelemetryRecords"
+        Resource: 
+          - "*"
 
   # TODO: Configure this function
   GenerateUploadUrl:
@@ -163,6 +189,9 @@ functions:
               - X-Amz-Security-Token
             allowCredentials: true
           path: todos/{todoId}/attachment
+          request:
+            schema:
+              application/json: ${file(models/get-todo-image-url-request.json)}
     iamRoleStatements:
       - Effect: Allow
         Action:
