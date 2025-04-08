@@ -47,6 +47,9 @@ export class TodosAccess {
       IndexName: process.env.TODOS_USER_ID_INDEX
     }
     const result = await this.docClient.send(new QueryCommand(params))
+    this.logger.info('Todos retrieved successfully', {
+      result
+    });
     return result.Items
   }
 
@@ -61,7 +64,10 @@ export class TodosAccess {
 
     try {
       const result = await this.dynamoDBClient.put(params);
-      return result;
+      this.logger.info('Todo created successfully', {
+        result
+      })
+      return todoObject;
     } catch (error) {
       this.logger.error('Error creating todo', error);
       throw new Error('Could not create todo');

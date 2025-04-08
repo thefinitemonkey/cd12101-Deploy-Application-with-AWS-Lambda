@@ -4,6 +4,7 @@ service: serverless-todo-app
 
 plugins:
   - serverless-iam-roles-per-function
+  - serverless-apigateway-service-proxy
 
 frameworkVersion: '3'
 
@@ -39,12 +40,6 @@ functions:
   GetTodos:
     handler: src/lambda/http/getTodos.handler
     events:
-      - http:
-        method: options
-        path: todos
-        cors:
-          origin: 'http://localhost:3000'
-          allowCredentials: true
       - http:
           method: get
           authorizer: Auth
@@ -90,7 +85,7 @@ functions:
             allowCredentials: true
           path: todos
           request:
-            schema:
+            schemas:
               application/json: ${file(models/create-todo-request.json)}
     iamRoleStatements:
       - Effect: Allow
@@ -123,7 +118,7 @@ functions:
             allowCredentials: true
           path: todos/{todoId}
           request:
-            schema:
+            schemas:
               application/json: ${file(models/update-todo-request.json)}
     iamRoleStatements:
       - Effect: Allow
@@ -157,7 +152,7 @@ functions:
             allowCredentials: true
           path: todos/{todoId}
           request:
-            schema:
+            schemas:
               application/json: ${file(models/delete-todo-request.json)}
     iamRoleStatements:
       - Effect: Allow
@@ -190,7 +185,7 @@ functions:
             allowCredentials: true
           path: todos/{todoId}/attachment
           request:
-            schema:
+            schemas:
               application/json: ${file(models/get-todo-image-url-request.json)}
     iamRoleStatements:
       - Effect: Allow

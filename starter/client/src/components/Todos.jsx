@@ -146,7 +146,12 @@ export function Todos() {
     <div>
       <Header as="h1">TODOs</Header>
 
-      <NewTodoInput onNewTodo={(newTodo) => setTodos([...todos, newTodo])} />
+      <NewTodoInput
+        onNewTodo={(newTodo) => {
+          console.log(`newTodo id: ${newTodo.todoId}`)
+          setTodos([...todos, newTodo])
+        }}
+      />
 
       {renderTodos(loadingTodos, todos)}
     </div>

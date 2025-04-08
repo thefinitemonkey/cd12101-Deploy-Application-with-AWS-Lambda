@@ -1,11 +1,14 @@
 import * as uuid from 'uuid'
 
 import { TodosAccess } from '../dataLayer/todosAccess.mjs'
+import { createLogger } from '../utils/logger.mjs'
 
-const todosAccess = new TodosAccess()
+
+const todosAccess = new TodosAccess();
+const logger = createLogger('businessLogicTodos');
 
 export async function getTodos(userId) {
-  return todosAccess.getTodos(userId)
+  return todosAccess.getTodos(userId);
 }
 
 export async function createTodo(userId, newTodo) {
@@ -24,6 +27,7 @@ export async function createTodo(userId, newTodo) {
 
   // Make request to have new todo created in the database
   const result = await todosAccess.createTodo(todoItem);
+  logger.info('Created todo at business logic', {result});
   return result;
 }
 

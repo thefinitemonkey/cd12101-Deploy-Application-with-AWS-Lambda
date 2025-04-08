@@ -27,5 +27,8 @@
     "serverless-iam-roles-per-function": "^3.2.0",
     "uuid": "^9.0.1",
     "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "serverless-apigateway-service-proxy": "^2.2.2"
   }
 }

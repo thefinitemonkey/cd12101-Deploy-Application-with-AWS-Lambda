@@ -9,17 +9,19 @@ export const handler = middy()
   .use(httpErrorHandler())
   .use(cors({ credentials: true, origin: 'http://localhost:3000' }))
   .handler(async (event) => {
+    // Create a logger instance
+    const logger = createLogger('createTodo')
+    logger.info('Processing create todo event', { event });
+    
     // Get the userId from the request
     const userId = getUserId(event)
     // Populate todo object from the request body and default values
     const newTodo = JSON.parse(event.body)
 
-    // Create a logger instance
-    const logger = createLogger('createTodo')
-
     logger.info('Processing create todo event', { userId, newTodo })
     // Call the business logic function to create a new todo
     const todoItem = await createTodo(userId, newTodo)
+    logger.info('Created todo', { todoItem });
 
     return {
       statusCode: 201,
